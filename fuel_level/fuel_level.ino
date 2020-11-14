@@ -31,23 +31,23 @@
 
 #define RESERV_LED_PIN  8
 
-#define SENSOR_PIN      A0  //датчик ДУТ
-#define AVERAGE_FACTOR  0         // коэффициент сглаживания показаний (0 = не сглаживать)
+#define SENSOR_PIN      A0          // датчик ДУТ
+#define AVERAGE_FACTOR  0           // коэффициент сглаживания показаний (0 = не сглаживать)
 
-#define POLLING_RATE    30 * 1000       // Milliseconds 
+#define POLLING_RATE    30 * 1000   // Milliseconds 
 
-#define STEPS          (315*3)    // Standard X25.168 range 315 degrees at 1/3 degree steps
+#define STEPS           (315*3)     // Standard X25.168 range 315 degrees at 1/3 degree steps
 
-#define MOTOR_ZERO     35  //положение стрелки мин.
-#define MOTOR_MAX       285 //положение стрелки макс.
-#define SENSOR_ZERO    14 //цифра ДУТ мин.
-#define SENSOR_MAX      454 //цифра ДУТ макс.
+#define MOTOR_ZERO      35          //положение стрелки мин.
+#define MOTOR_MAX       285         //положение стрелки макс.
+#define SENSOR_ZERO     14          //цифра ДУТ мин.
+#define SENSOR_MAX      454         //цифра ДУТ макс.
 
 // MOTOR 50% THRASHOLD
 #define MOTOR_HALF_PERCENT_TH   165 //положение стрелки  *1/2* бака
 #define SENSOR_HALF             ((SENSOR_MAX - SENSOR_ZERO) / 2)
 
-#define IN_RESERVE_TH   35        // лампа сигнализации резерва
+#define IN_RESERVE_TH   35          // лампа сигнализации резерва
 
 
 /**
@@ -98,6 +98,8 @@ void setup(void) {
 #ifdef LOGS
     Serial.println("GO!");
 #endif
+
+    filter.begin(FILTER_METHOD, FILTER_ACCURACY);
 }
 
 
@@ -108,7 +110,7 @@ void loop(void) {
     // Read past time
     unsigned long now = millis();
 
-    // Check sensors and update the positon only after polling rate expires
+    // Check sensors and update the position only after polling rate expires
     if (now - last_check > POLLING_RATE) {
 
         // Read sensor value
@@ -117,11 +119,11 @@ void loop(void) {
 
         if (val >= SENSOR_ZERO && val <= SENSOR_MAX) {
             // Invert the value
-            val = SENSOR_MAX - val;
+            const int inverted_val = SENSOR_MAX - val;
 
             // Update only if the values differs
-            if (abs(val - last_sensor_val) > AVERAGE_FACTOR) {
-                last_sensor_val = val;
+            if (abs(inverted_val - last_sensor_val) > AVERAGE_FACTOR) {
+                last_sensor_val = inverted_val;
 
                 check_if_reserve(last_sensor_val);
 
@@ -135,11 +137,10 @@ void loop(void) {
                     motor_position = map(last_sensor_val, SENSOR_ZERO, SENSOR_HALF, MOTOR_ZERO, MOTOR_HALF_PERCENT_TH);
                 }
 
-                // Check if the motor position is in the renge
+                // Check if the motor position is in the range
                 if (motor_position <= MOTOR_MAX && motor_position >= MOTOR_ZERO) {
                     // Set new position
                     motor.setPosition(motor_position);
-                    last_check = now;
                 }
 
 #ifdef LOGS
@@ -160,10 +161,12 @@ void loop(void) {
 
 #ifdef LOGS
         char buff[50];
-        sprintf(buff, "RAW|AVERAGE SENSOR: %04d|%04d  ->  MOTOR: %04d", val, last_sensor_val,
-                motor_position);
+        sprintf(buff, "SENSOR: %04d(raw) %04d(filtered) %04d  ->  MOTOR: %04d",
+                raw_val, val, last_sensor_val, motor_position);
         Serial.println(buff);
 #endif
+
+        last_check = now;
     }
 
     // the motor only moves when you call update

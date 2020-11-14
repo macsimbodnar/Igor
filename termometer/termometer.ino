@@ -17,7 +17,7 @@
 #include <Smoothed.h> // https://github.com/MattFryer/Smoothed
 
 
-#define LOGS            // Comment out this line if want to remove serial code!
+// #define LOGS            // Comment out this line if want to remove serial code!
 
 
 /**
@@ -29,18 +29,18 @@
 #define MOTOR_PIN3      6
 #define MOTOR_PIN4      7
 
-#define SENSOR_PIN      A0        // датчик ДУТ
-#define AVERAGE_FACTOR  0         // коэффициент сглаживания показаний (0 = не сглаживать)
+#define SENSOR_PIN      A0          // датчик ДУТ
+#define AVERAGE_FACTOR  0           // коэффициент сглаживания показаний (0 = не сглаживать)
 
-#define POLLING_RATE    1000       // Milliseconds 
+#define POLLING_RATE    1000        // Milliseconds 
 
-#define STEPS          (315*3)    // Standard X25.168 range 315 degrees at 1/3 degree steps
+#define STEPS          (315*3)      // Standard X25.168 range 315 degrees at 1/3 degree steps
 
-#define MOTOR_ZERO      35   //положение стрелки мин.
-#define MOTOR_MAX       285  //положение стрелки макс.
+#define MOTOR_ZERO      35          //положение стрелки мин.
+#define MOTOR_MAX       285         //положение стрелки макс.
 
-#define SENSOR_ZERO     0    //цифра ДУТ мин.
-#define SENSOR_MAX      400  //цифра ДУТ макс.
+#define SENSOR_ZERO     0           //цифра ДУТ мин.
+#define SENSOR_MAX      400         //цифра ДУТ макс.
 
 
 /**

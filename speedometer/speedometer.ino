@@ -82,7 +82,7 @@ void loop(void) {
     // Read past time
     unsigned long now = millis();
 
-    // Check sensors and update the positon only after polling rate expires
+    // Check sensors and update the position only after polling rate expires
     if (now - last_check > POLLING_RATE) {
 
         // Read sensor value
@@ -106,11 +106,10 @@ void loop(void) {
                     motor_position = map(last_sensor_val, SENSOR_ZERO, SENSOR_HALF, MOTOR_ZERO, MOTOR_HALF_PERCENT_TH);
                 }
 
-                // Check if the motor position is in the renge
+                // Check if the motor position is in the range
                 if (motor_position <= MOTOR_MAX && motor_position >= MOTOR_ZERO) {
                     // Set new position
                     motor.setPosition(motor_position);
-                    last_check = now;
                 }
 
 #ifdef LOGS
@@ -135,6 +134,8 @@ void loop(void) {
                 motor_position);
         Serial.println(buff);
 #endif
+
+        last_check = now;
     }
 
     // the motor only moves when you call update

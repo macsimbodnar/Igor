@@ -76,44 +76,48 @@ void setup(void) {
 
 void loop() {
 
-    const unsigned int current_impulses = impulse_counter;
-    impulse_counter = 0;
-
-    const float distance_from_last_check = current_impulses * CM_FOR_IMPULSE;
-    
     const unsigned long now = millis();
     const unsigned long elapsed_time_ms = now - last_check_ms;
     last_check_ms = now;
 
-    const float speed_cm_per_ms = distance_from_last_check / (float)elapsed_time_ms;
-    const unsigned long km_per_sec = (unsigned long)(speed_cm_per_ms * CONST_CONV_CM_PER_MS_TO_KM_PER_H);
-    
-    const unsigned long motor_pos = calc_motor_position(km_per_sec);
-    
-    // Check if the motor position is in the range
-    if (motor_pos <= MOTOR_MAX && motor_pos >= MOTOR_ZERO) {
-        // Set new position
-        motor.setPosition(motor_pos);
-    }
+    if (elapsed_time_ms > UPDATE_SLEEP_MS) {
+
+        const unsigned int current_impulses = impulse_counter;
+        impulse_counter = 0;
+
+        const float distance_from_last_check = current_impulses * CM_FOR_IMPULSE;
+
+
+        const float speed_cm_per_ms = distance_from_last_check / (float)elapsed_time_ms;
+        const unsigned long km_per_sec = (unsigned long)(speed_cm_per_ms * CONST_CONV_CM_PER_MS_TO_KM_PER_H);
+
+        const unsigned long motor_pos = calc_motor_position(km_per_sec);
+
+        // Check if the motor position is in the range
+        if (motor_pos <= MOTOR_MAX && motor_pos >= MOTOR_ZERO) {
+            // Set new position
+            motor.setPosition(motor_pos);
+        }
 
 #ifdef LOGS
-    Serial.print("imp: ");
-    Serial.print(current_impulses);
-    Serial.print(", dist cm: ");
-    Serial.print(distance_from_last_check);
-    Serial.print(", elapsed ms: ");
-    Serial.print(elapsed_time_ms);   
-    Serial.print(", speed cm/ms: ");
-    Serial.print(speed_cm_per_ms);
-    Serial.print(", Km/h: ");
-    Serial.print(km_per_sec);
-    Serial.print(", motor pos: ");
-    Serial.print(motor_pos);
-    Serial.print("\n");
+        Serial.print("imp: ");
+        Serial.print(current_impulses);
+        Serial.print(", dist cm: ");
+        Serial.print(distance_from_last_check);
+        Serial.print(", elapsed ms: ");
+        Serial.print(elapsed_time_ms);
+        Serial.print(", speed cm/ms: ");
+        Serial.print(speed_cm_per_ms);
+        Serial.print(", Km/h: ");
+        Serial.print(km_per_sec);
+        Serial.print(", motor pos: ");
+        Serial.print(motor_pos);
+        Serial.print("\n");
 #endif
+    }
 
+    // We can not use the sleep because the update needs to be called as often as possible
     motor.update();
-    delay(UPDATE_SLEEP_MS); 
 }
 
 

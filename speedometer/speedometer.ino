@@ -78,9 +78,10 @@ void loop() {
 
     const unsigned long now = millis();
     const unsigned long elapsed_time_ms = now - last_check_ms;
-    last_check_ms = now;
 
     if (elapsed_time_ms > UPDATE_SLEEP_MS) {
+
+        last_check_ms = now;
 
         const unsigned int current_impulses = impulse_counter;
         impulse_counter = 0;

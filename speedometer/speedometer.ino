@@ -32,7 +32,7 @@
 #define STEPS          (315*3)    // Standard X25.168 range 315 degrees at 1/3 degree steps
 
 #define MOTOR_ZERO      20
-#define MOTOR_MAX       255
+#define MOTOR_MAX       700
 
 #define UPDATE_SLEEP_MS 1000
 #define CONST_CONV_CM_PER_MS_TO_KM_PER_H 36
@@ -88,7 +88,6 @@ void loop() {
 
         const float distance_from_last_check = current_impulses * CM_FOR_IMPULSE;
 
-
         const float speed_cm_per_ms = distance_from_last_check / (float)elapsed_time_ms;
         const unsigned long km_per_sec = (unsigned long)(speed_cm_per_ms * CONST_CONV_CM_PER_MS_TO_KM_PER_H);
 
@@ -128,40 +127,40 @@ void interrupt_handler() {
 
 
 unsigned long calc_motor_position(const unsigned long km_h) {
-    int motor_position = 0;
+    unsigned long motor_position = 0;
 
     if (km_h < 10) {
         motor_position = map(km_h, 0, 9, MOTOR_ZERO, 65);
     } else if (km_h < 20) {
-        motor_position = map(km_h, 10, 19, 0, 65);
+        motor_position = map(km_h, 10, 19, 65, 110);
     } else if (km_h < 30) {
-        motor_position = map(km_h, 20, 29, 0, 65);
+        motor_position = map(km_h, 20, 29, 110, 155);
     } else if (km_h < 40) {
-        motor_position = map(km_h, 30, 39, 0, 65);
+        motor_position = map(km_h, 30, 39, 155, 200);
     } else if (km_h < 50) {
-        motor_position = map(km_h, 40, 49, 0, 65);
+        motor_position = map(km_h, 40, 49, 200, 245);
     } else if (km_h < 60) {
-        motor_position = map(km_h, 50, 59, 0, 65);
+        motor_position = map(km_h, 50, 59, 245, 295);
     } else if (km_h < 70) {
-        motor_position = map(km_h, 60, 69, 0, 65);
+        motor_position = map(km_h, 60, 69, 295, 330);
     } else if (km_h < 80) {
-        motor_position = map(km_h, 70, 79, 0, 65);
+        motor_position = map(km_h, 70, 79, 330, 370);
     } else if (km_h < 90) {
-        motor_position = map(km_h, 80, 89, 0, 65);
+        motor_position = map(km_h, 80, 89, 370, 408);
     } else if (km_h < 100) {
-        motor_position = map(km_h, 90, 99, 0, 65);
+        motor_position = map(km_h, 90, 99, 408, 445);
     } else if (km_h < 110) {
-        motor_position = map(km_h, 100, 109, 0, 65);
+        motor_position = map(km_h, 100, 109, 445, 480);
     } else if (km_h < 120) {
-        motor_position = map(km_h, 110, 119, 0, 65);
+        motor_position = map(km_h, 110, 119, 480, 520);
     } else if (km_h < 130) {
-        motor_position = map(km_h, 120, 129, 0, 65);
+        motor_position = map(km_h, 120, 129, 520, 560);
     } else if (km_h < 140) {
-        motor_position = map(km_h, 130, 139, 0, 65);
+        motor_position = map(km_h, 130, 139, 560, 595);
     } else if (km_h < 150) {
-        motor_position = map(km_h, 140, 149, 0, 65);
+        motor_position = map(km_h, 140, 149, 595, 620);
     } else {
-        motor_position = map(km_h, 150, 500, 0, 65);
+        motor_position = MOTOR_MAX;
     }
 
     return motor_position;

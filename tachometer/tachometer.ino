@@ -31,14 +31,10 @@
 
 #define STEPS          (315*3)    // Standard X25.168 range 315 degrees at 1/3 degree steps
 
-#define MOTOR_ZERO      20
-#define MOTOR_MAX       700
+#define MOTOR_ZERO      17
+#define MOTOR_MAX       650
 
-#define UPDATE_SLEEP_MS 500
-#define CONST_CONV_CM_PER_MS_TO_KM_PER_H 36
-
-// 6 impulses -> full turn (360) so we have 39 cm per impulse
-#define CM_FOR_IMPULSE  39.0f  // [cm/impulse]
+#define UPDATE_SLEEP_MS 250
 
 /**
    GLOBALS
@@ -48,6 +44,13 @@ SwitecX25 motor(STEPS, MOTOR_PIN1, MOTOR_PIN2, MOTOR_PIN3, MOTOR_PIN4);
 
 volatile unsigned int impulse_counter = 0;
 unsigned long last_check_ms = 0;
+
+/**
+ * The motor on idle (900 RPM) to 30 impulses at second
+ * So we have 15 rounds per second -> 2 impulses per round -> 0,d rounds per impulse
+ */
+#define ROUNDS_PER_IMPULSE 0.5f
+
 
 /**
    SETUP
@@ -86,12 +89,10 @@ void loop() {
         const unsigned int current_impulses = impulse_counter;
         impulse_counter = 0;
 
-        const float distance_from_last_check = current_impulses * CM_FOR_IMPULSE;
+        const float rounds_from_last_check = current_impulses * ROUNDS_PER_IMPULSE;
+        const unsigned long rounds_per_min = (const unsigned long)((rounds_from_last_check * 60000) / (float) elapsed_time_ms);
 
-        const float speed_cm_per_ms = distance_from_last_check / (float)elapsed_time_ms;
-        const unsigned long km_per_sec = (unsigned long)(speed_cm_per_ms * CONST_CONV_CM_PER_MS_TO_KM_PER_H);
-
-        const unsigned long motor_pos = calc_motor_position(km_per_sec);
+        const unsigned long motor_pos = calc_motor_position(rounds_per_min);
 
         // Check if the motor position is in the range
         if (motor_pos <= MOTOR_MAX && motor_pos >= MOTOR_ZERO) {
@@ -102,14 +103,12 @@ void loop() {
 #ifdef LOGS
         Serial.print("imp: ");
         Serial.print(current_impulses);
-        Serial.print(", dist cm: ");
-        Serial.print(distance_from_last_check);
-        Serial.print(", elapsed ms: ");
+        Serial.print(", el ms: ");
         Serial.print(elapsed_time_ms);
-        Serial.print(", speed cm/ms: ");
-        Serial.print(speed_cm_per_ms);
-        Serial.print(", Km/h: ");
-        Serial.print(km_per_sec);
+        Serial.print(", R/check: ");
+        Serial.print(rounds_from_last_check);
+        Serial.print(", RPM: ");
+        Serial.print(rounds_per_min);
         Serial.print(", motor pos: ");
         Serial.print(motor_pos);
         Serial.print("\n");
@@ -129,36 +128,24 @@ void interrupt_handler() {
 unsigned long calc_motor_position(const unsigned long km_h) {
     unsigned long motor_position = 0;
 
-    if (km_h < 10) {
-        motor_position = map(km_h, 0, 9, MOTOR_ZERO, 65);
-    } else if (km_h < 20) {
-        motor_position = map(km_h, 10, 19, 65, 110);
-    } else if (km_h < 30) {
-        motor_position = map(km_h, 20, 29, 110, 155);
-    } else if (km_h < 40) {
-        motor_position = map(km_h, 30, 39, 155, 200);
-    } else if (km_h < 50) {
-        motor_position = map(km_h, 40, 49, 200, 245);
-    } else if (km_h < 60) {
-        motor_position = map(km_h, 50, 59, 245, 295);
-    } else if (km_h < 70) {
-        motor_position = map(km_h, 60, 69, 295, 330);
-    } else if (km_h < 80) {
-        motor_position = map(km_h, 70, 79, 330, 370);
-    } else if (km_h < 90) {
-        motor_position = map(km_h, 80, 89, 370, 408);
-    } else if (km_h < 100) {
-        motor_position = map(km_h, 90, 99, 408, 445);
-    } else if (km_h < 110) {
-        motor_position = map(km_h, 100, 109, 445, 480);
-    } else if (km_h < 120) {
-        motor_position = map(km_h, 110, 119, 480, 520);
-    } else if (km_h < 130) {
-        motor_position = map(km_h, 120, 129, 520, 560);
-    } else if (km_h < 140) {
-        motor_position = map(km_h, 130, 139, 560, 595);
-    } else if (km_h < 150) {
-        motor_position = map(km_h, 140, 149, 595, 620);
+    if (km_h < 1000) {
+        motor_position = map(km_h, 0, 999, MOTOR_ZERO, 100);
+    } else if (km_h < 1500) {
+        motor_position = map(km_h, 1000, 1499, 100, 166);
+    } else if (km_h < 2000) {
+        motor_position = map(km_h, 1500, 1999, 166, 231);
+    } else if (km_h < 2500) {
+        motor_position = map(km_h, 2000, 2499, 231, 297);
+    } else if (km_h < 3000) {
+        motor_position = map(km_h, 2500, 2999, 297, 360);
+    } else if (km_h < 3500) {
+        motor_position = map(km_h, 3000, 3499, 360, 422);
+    } else if (km_h < 4000) {
+        motor_position = map(km_h, 3500, 3999, 422, 485);
+    } else if (km_h < 4500) {
+        motor_position = map(km_h, 4000, 4499, 485, 547);
+    } else if (km_h < 5001) {
+        motor_position = map(km_h, 4500, 5000, 547, 610);
     } else {
         motor_position = MOTOR_MAX;
     }
